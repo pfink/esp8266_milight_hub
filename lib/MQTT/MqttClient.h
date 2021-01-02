@@ -1,7 +1,7 @@
 #include <MiLightClient.h>
 #include <Settings.h>
 #include <PubSubClient.h>
-#include <WiFiClient.h>
+#include <EthernetClient.h>
 #include <MiLightRadioConfig.h>
 
 #ifndef MQTT_CONNECTION_ATTEMPT_FREQUENCY
@@ -33,7 +33,7 @@ public:
   String bindTopicString(const String& topicPattern, const BulbId& bulbId);
 
 private:
-  WiFiClient tcpClient;
+  EthernetClient tcpClient;
   PubSubClient mqttClient;
   MiLightClient*& milightClient;
   Settings& settings;

@@ -28,7 +28,7 @@ License (MIT license):
 #define LWIP_OPEN_SRC
 #include <functional>
 #include "New_ESP8266SSDP.h"
-#include "WiFiUdp.h"
+#include "EthernetUdp.h"
 #include "debug.h"
 
 extern "C" {
@@ -241,7 +241,7 @@ void SSDPClass::_send(ssdp_method_t method){
   _server->send(&remoteAddr, remotePort);
 }
 
-void SSDPClass::schema(WiFiClient client){
+void SSDPClass::schema(EthernetClient client){
   uint32_t ip = WiFi.localIP();
   char buffer[strlen(_ssdp_schema_template)+1];
   strcpy_P(buffer, _ssdp_schema_template);

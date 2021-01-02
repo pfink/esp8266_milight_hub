@@ -4,7 +4,7 @@
 #include <UrlTokenBindings.h>
 #include <IntParsing.h>
 #include <ArduinoJson.h>
-#include <WiFiClient.h>
+#include <EthernetClient.h>
 #include <MiLightRadioConfig.h>
 #include <AboutHelper.h>
 

@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <MiLightClient.h>
-#include <WiFiUdp.h>
+#include <EthernetUdp.h>
 
 #include <memory>
 

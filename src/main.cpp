@@ -1,10 +1,7 @@
 #ifndef UNIT_TEST
 
-#include <SPI.h>
-#include <WiFiManager.h>
 #include <ArduinoJson.h>
 #include <stdlib.h>
-#include <FS.h>
 #include <IntParsing.h>
 #include <Size.h>
 #include <LinkedList.h>
@@ -16,8 +13,6 @@
 #include <MiLightRemoteType.h>
 #include <Settings.h>
 #include <MiLightUdpServer.h>
-#include <ESP8266mDNS.h>
-#include <ESP8266SSDP.h>
 #include <MqttClient.h>
 #include <RGBConverter.h>
 #include <MiLightDiscoveryServer.h>
@@ -30,12 +25,6 @@
 
 #include <vector>
 #include <memory>
-
-WiFiManager wifiManager;
-// because of callbacks, these need to be in the higher scope :(
-WiFiManagerParameter* wifiStaticIP = NULL;
-WiFiManagerParameter* wifiStaticIPNetmask = NULL;
-WiFiManagerParameter* wifiStaticIPGateway = NULL;
 
 static LEDStatus *ledStatus;
 
@@ -57,7 +46,7 @@ TransitionController transitions;
 
 int numUdpServers = 0;
 std::vector<std::shared_ptr<MiLightUdpServer>> udpServers;
-WiFiUDP udpSeder;
+Udp udpSeder;
 
 /**
  * Set up UDP servers (both v5 and v6).  Clean up old ones if necessary.
@@ -274,23 +263,6 @@ void applySettings() {
     ledStatus->changePin(settings.ledPin);
     ledStatus->continuous(settings.ledModeOperating);
   }
-
-  WiFi.hostname(settings.hostname);
-
-  WiFiPhyMode_t wifiMode;
-  switch (settings.wifiMode) {
-    case WifiMode::B:
-      wifiMode = WIFI_PHY_MODE_11B;
-      break;
-    case WifiMode::G:
-      wifiMode = WIFI_PHY_MODE_11G;
-      break;
-    default:
-    case WifiMode::N:
-      wifiMode = WIFI_PHY_MODE_11N;
-      break;
-  }
-  WiFi.setPhyMode(wifiMode);
 }
 
 /**
@@ -309,13 +281,6 @@ void handleLED() {
   ledStatus->handle();
 }
 
-void wifiExtraSettingsChange() {
-  settings.wifiStaticIP = wifiStaticIP->getValue();
-  settings.wifiStaticIPNetmask = wifiStaticIPNetmask->getValue();
-  settings.wifiStaticIPGateway = wifiStaticIPGateway->getValue();
-  settings.save();
-}
-
 // Called when a group is deleted via the REST API.  Will publish an empty message to
 // the MQTT topic to delete retained state
 void onGroupDeleted(const BulbId& id) {
@@ -330,101 +295,16 @@ void onGroupDeleted(const BulbId& id) {
 }
 
 void setup() {
-  Serial.begin(9600);
-  String ssid = "ESP" + String(ESP.getChipId());
 
   // load up our persistent settings from the file system
   SPIFFS.begin();
   Settings::load(settings);
   applySettings();
 
-  // set up the LED status for wifi configuration
-  ledStatus = new LEDStatus(settings.ledPin);
-  ledStatus->continuous(settings.ledModeWifiConfig);
-
-  // start up the wifi manager
-  if (! MDNS.begin("milight-hub")) {
-    Serial.println(F("Error setting up MDNS responder"));
-  }
-  // tell Wifi manager to call us during the setup.  Note that this "setSetupLoopCallback" is an addition
-  // made to Wifi manager in a private fork.  As of this writing, WifiManager has a new feature coming that
-  // allows the "autoConnect" method to be non-blocking which can implement this same functionality.  However,
-  // that change is only on the development branch so we are going to continue to use this fork until
-  // that is merged and ready.
-  wifiManager.setSetupLoopCallback(handleLED);
-
-  // Allows us to have static IP config in the captive portal. Yucky pointers to pointers, just to have the settings carry through
-  wifiManager.setSaveConfigCallback(wifiExtraSettingsChange);
-
-  wifiStaticIP = new WiFiManagerParameter(
-    "staticIP",
-    "Static IP (Leave blank for dhcp)",
-    settings.wifiStaticIP.c_str(),
-    MAX_IP_ADDR_LEN
-  );
-  wifiManager.addParameter(wifiStaticIP);
-
-  wifiStaticIPNetmask = new WiFiManagerParameter(
-    "netmask",
-    "Netmask (required if IP given)",
-    settings.wifiStaticIPNetmask.c_str(),
-    MAX_IP_ADDR_LEN
-  );
-  wifiManager.addParameter(wifiStaticIPNetmask);
-
-  wifiStaticIPGateway = new WiFiManagerParameter(
-    "gateway",
-    "Default Gateway (optional, only used if static IP)",
-    settings.wifiStaticIPGateway.c_str(),
-    MAX_IP_ADDR_LEN
-  );
-  wifiManager.addParameter(wifiStaticIPGateway);
-
-  // We have a saved static IP, let's try and use it.
-  if (settings.wifiStaticIP.length() > 0) {
-    Serial.printf_P(PSTR("We have a static IP: %s\n"), settings.wifiStaticIP.c_str());
-
-    IPAddress _ip, _subnet, _gw;
-    _ip.fromString(settings.wifiStaticIP);
-    _subnet.fromString(settings.wifiStaticIPNetmask);
-    _gw.fromString(settings.wifiStaticIPGateway);
-
-    wifiManager.setSTAStaticIPConfig(_ip,_gw,_subnet);
-  }
-
-  wifiManager.setConfigPortalTimeout(180);
-
-  if (wifiManager.autoConnect(ssid.c_str(), "milightHub")) {
-    // set LED mode for successful operation
-    ledStatus->continuous(settings.ledModeOperating);
-    Serial.println(F("Wifi connected succesfully\n"));
-
-    // if the config portal was started, make sure to turn off the config AP
-    WiFi.mode(WIFI_STA);
-  } else {
-    // set LED mode for Wifi failed
-    ledStatus->continuous(settings.ledModeWifiFailed);
-    Serial.println(F("Wifi failed.  Restarting in 10 seconds.\n"));
-
-    delay(10000);
-    ESP.restart();
-  }
-
-
-  MDNS.addService("http", "tcp", 80);
-
-  SSDP.setSchemaURL("description.xml");
-  SSDP.setHTTPPort(80);
-  SSDP.setName("ESP8266 MiLight Gateway");
-  SSDP.setSerialNumber(ESP.getChipId());
-  SSDP.setURL("/");
-  SSDP.setDeviceType("upnp:rootdevice");
-  SSDP.begin();
-
   httpServer = new MiLightHttpServer(settings, milightClient, stateStore, packetSender, radios, transitions);
   httpServer->onSettingsSaved(applySettings);
   httpServer->onGroupDeleted(onGroupDeleted);
-  httpServer->on("/description.xml", HTTP_GET, []() { SSDP.schema(httpServer->client()); });
+  httpServer->on("/description.xml", HTTP_GET, []() {  });
   httpServer->begin();
 
   transitions.addListener(
@@ -467,11 +347,6 @@ void loop() {
   ledStatus->handle();
 
   transitions.loop();
-
-  if (shouldRestart()) {
-    Serial.println(F("Auto-restart triggered. Restarting..."));
-    ESP.restart();
-  }
 }
 
 #endif

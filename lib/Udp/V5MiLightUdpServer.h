@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <MiLightClient.h>
-#include <WiFiUdp.h>
+#include <EthernetUdp.h>
 #include <MiLightUdpServer.h>
 
 #ifndef _V5_MILIGHT_UDP_SERVER
