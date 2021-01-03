@@ -1,6 +1,10 @@
 #include <MiLightDiscoveryServer.h>
 #include <Size.h>
+#ifdef ETHERNET
+#include <Ethernet.h>
+#else
 #include <ESP8266WiFi.h>
+#endif
 
 const char V3_SEARCH_STRING[] = "Link_Wi-Fi";
 const char V6_SEARCH_STRING[] = "HF-A11ASSISTHREAD";
@@ -60,8 +64,11 @@ void MiLightDiscoveryServer::handleDiscovery(uint8_t version) {
     if (config.protocolVersion != version) {
       continue;
     }
-
+    #ifdef ETHERNET
+    IPAddress addr = Ethernet.localIP();
+    #else
     IPAddress addr = WiFi.localIP();
+    #endif
     char* ptr = buffer;
     ptr += sprintf_P(
       buffer,

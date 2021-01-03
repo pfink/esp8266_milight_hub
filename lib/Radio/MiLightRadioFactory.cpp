@@ -10,9 +10,10 @@ std::shared_ptr<MiLightRadioFactory> MiLightRadioFactory::fromSettings(const Set
         settings.rf24Channels,
         settings.rf24ListenChannel
       );
-
+    #ifndef RASPBERRYPI
     case LT8900:
       return std::make_shared<LT8900Factory>(settings.csnPin, settings.resetPin, settings.cePin);
+    #endif
 
     default:
       return NULL;
@@ -36,7 +37,7 @@ NRF24Factory::NRF24Factory(
 std::shared_ptr<MiLightRadio> NRF24Factory::create(const MiLightRadioConfig &config) {
   return std::make_shared<NRF24MiLightRadio>(rf24, config, channels, listenChannel);
 }
-
+#ifndef RASPBERRYPI
 LT8900Factory::LT8900Factory(uint8_t csPin, uint8_t resetPin, uint8_t pktFlag)
   : _csPin(csPin),
     _resetPin(resetPin),
@@ -46,3 +47,4 @@ LT8900Factory::LT8900Factory(uint8_t csPin, uint8_t resetPin, uint8_t pktFlag)
 std::shared_ptr<MiLightRadio> LT8900Factory::create(const MiLightRadioConfig& config) {
   return std::make_shared<LT8900MiLightRadio>(_csPin, _resetPin, _pktFlag, config);
 }
+#endif

@@ -4,29 +4,23 @@
 #include <stdlib.h>
 #include <IntParsing.h>
 #include <Size.h>
-#include <LinkedList.h>
-#include <LEDStatus.h>
+//#include <LinkedList.h>
 #include <GroupStateStore.h>
 #include <MiLightRadioConfig.h>
 #include <MiLightRemoteConfig.h>
-#include <MiLightHttpServer.h>
 #include <MiLightRemoteType.h>
 #include <Settings.h>
 #include <MiLightUdpServer.h>
-#include <MqttClient.h>
 #include <RGBConverter.h>
 #include <MiLightDiscoveryServer.h>
 #include <MiLightClient.h>
-#include <BulbStateUpdater.h>
 #include <RadioSwitchboard.h>
 #include <PacketSender.h>
-#include <HomeAssistantDiscoveryClient.h>
 #include <TransitionController.h>
+#include <EthernetUdp.h>
 
 #include <vector>
 #include <memory>
-
-static LEDStatus *ledStatus;
 
 Settings settings;
 
@@ -34,19 +28,15 @@ MiLightClient* milightClient = NULL;
 RadioSwitchboard* radios = nullptr;
 PacketSender* packetSender = nullptr;
 std::shared_ptr<MiLightRadioFactory> radioFactory;
-MiLightHttpServer *httpServer = NULL;
-MqttClient* mqttClient = NULL;
 MiLightDiscoveryServer* discoveryServer = NULL;
 uint8_t currentRadioType = 0;
 
 // For tracking and managing group state
 GroupStateStore* stateStore = NULL;
-BulbStateUpdater* bulbStateUpdater = NULL;
 TransitionController transitions;
 
 int numUdpServers = 0;
 std::vector<std::shared_ptr<MiLightUdpServer>> udpServers;
-Udp udpSeder;
 
 /**
  * Set up UDP servers (both v5 and v6).  Clean up old ones if necessary.
@@ -86,9 +76,6 @@ void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
 
   BulbId bulbId = config.packetFormatter->parsePacket(packet, result);
 
-  // set LED mode for a packet movement
-  ledStatus->oneshot(settings.ledModePacket, settings.ledModePacketCount);
-
   if (&bulbId == &DEFAULT_BULB_ID) {
     Serial.println(F("Skipping packet handler because packet was not decoded"));
     return;
@@ -110,19 +97,6 @@ void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
     stateStore->set(bulbId, stateUpdates);
   }
 
-  if (mqttClient) {
-    // Sends the state delta derived from the raw packet
-    char output[200];
-    serializeJson(result, output);
-    mqttClient->sendUpdate(remoteConfig, bulbId.deviceId, bulbId.groupId, output);
-
-    // Sends the entire state
-    if (groupState != NULL) {
-      bulbStateUpdater->enqueueUpdate(bulbId, *groupState);
-    }
-  }
-
-  httpServer->handlePacketSent(packet, remoteConfig);
 }
 
 /**
@@ -165,38 +139,11 @@ void handleListen() {
 }
 
 /**
- * Called when MqttClient#update is first being processed.  Stop sending updates
- * and aggregate state changes until the update is finished.
- */
-void onUpdateBegin() {
-  if (bulbStateUpdater) {
-    bulbStateUpdater->disable();
-  }
-}
-
-/**
- * Called when MqttClient#update is finished processing.  Re-enable state
- * updates, which will flush accumulated state changes.
- */
-void onUpdateEnd() {
-  if (bulbStateUpdater) {
-    bulbStateUpdater->enable();
-  }
-}
-
-/**
  * Apply what's in the Settings object.
  */
 void applySettings() {
   if (milightClient) {
     delete milightClient;
-  }
-  if (mqttClient) {
-    delete mqttClient;
-    delete bulbStateUpdater;
-
-    mqttClient = NULL;
-    bulbStateUpdater = NULL;
   }
   if (stateStore) {
     delete stateStore;
@@ -228,24 +175,6 @@ void applySettings() {
     settings,
     transitions
   );
-  milightClient->onUpdateBegin(onUpdateBegin);
-  milightClient->onUpdateEnd(onUpdateEnd);
-
-  if (settings.mqttServer().length() > 0) {
-    mqttClient = new MqttClient(settings, milightClient);
-    mqttClient->begin();
-    mqttClient->onConnect([]() {
-      if (settings.homeAssistantDiscoveryPrefix.length() > 0) {
-        HomeAssistantDiscoveryClient discoveryClient(settings, mqttClient);
-        discoveryClient.sendDiscoverableDevices(settings.groupIdAliases);
-        discoveryClient.removeOldDevices(settings.deletedGroupIdAliases);
-
-        settings.deletedGroupIdAliases.clear();
-      }
-    });
-
-    bulbStateUpdater = new BulbStateUpdater(settings, *mqttClient, *stateStore);
-  }
 
   initMilightUdpServers();
 
@@ -258,11 +187,6 @@ void applySettings() {
     discoveryServer->begin();
   }
 
-  // update LED pin and operating mode
-  if (ledStatus) {
-    ledStatus->changePin(settings.ledPin);
-    ledStatus->continuous(settings.ledModeOperating);
-  }
 }
 
 /**
@@ -278,34 +202,20 @@ bool shouldRestart() {
 
 // give a bit of time to update the status LED
 void handleLED() {
-  ledStatus->handle();
+
 }
 
 // Called when a group is deleted via the REST API.  Will publish an empty message to
 // the MQTT topic to delete retained state
 void onGroupDeleted(const BulbId& id) {
-  if (mqttClient != NULL) {
-    mqttClient->sendState(
-      *MiLightRemoteConfig::fromType(id.deviceType),
-      id.deviceId,
-      id.groupId,
-      ""
-    );
-  }
+
 }
 
 void setup() {
 
   // load up our persistent settings from the file system
-  SPIFFS.begin();
   Settings::load(settings);
   applySettings();
-
-  httpServer = new MiLightHttpServer(settings, milightClient, stateStore, packetSender, radios, transitions);
-  httpServer->onSettingsSaved(applySettings);
-  httpServer->onGroupDeleted(onGroupDeleted);
-  httpServer->on("/description.xml", HTTP_GET, []() {  });
-  httpServer->begin();
 
   transitions.addListener(
     [](const BulbId& bulbId, GroupStateField field, uint16_t value) {
@@ -323,12 +233,6 @@ void setup() {
 }
 
 void loop() {
-  httpServer->handleClient();
-
-  if (mqttClient) {
-    mqttClient->handleClient();
-    bulbStateUpdater->loop();
-  }
 
   for (size_t i = 0; i < udpServers.size(); i++) {
     udpServers[i]->handleClient();
@@ -342,9 +246,6 @@ void loop() {
 
   stateStore->limitedFlush();
   packetSender->loop();
-
-  // update LED with status
-  ledStatus->handle();
 
   transitions.loop();
 }

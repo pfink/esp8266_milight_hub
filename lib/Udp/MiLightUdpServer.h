@@ -27,7 +27,7 @@ public:
   static std::shared_ptr<MiLightUdpServer> fromVersion(uint8_t version, MiLightClient*&, uint16_t port, uint16_t deviceId);
 
 protected:
-  WiFiUDP socket;
+  EthernetUDP socket;
   MiLightClient*& client;
   uint16_t port;
   uint16_t deviceId;

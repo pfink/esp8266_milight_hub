@@ -6,7 +6,6 @@
 #include <RF24Channel.h>
 #include <Size.h>
 #include <LEDStatus.h>
-#include <AuthProviders.h>
 
 #include <MiLightRemoteType.h>
 #include <BulbId.h>
@@ -203,7 +202,7 @@ protected:
 
   void parseGroupIdAliases(JsonObject json);
   void dumpGroupIdAliases(JsonObject json);
-
+  
   static WifiMode wifiModeFromString(const String& mode);
   static String wifiModeToString(WifiMode mode);
 

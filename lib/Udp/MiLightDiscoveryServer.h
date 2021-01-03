@@ -16,7 +16,7 @@ public:
 
 private:
   Settings& settings;
-  WiFiUDP socket;
+  EthernetUDP socket;
 
   void handleDiscovery(uint8_t version);
   void sendResponse(char* buffer);

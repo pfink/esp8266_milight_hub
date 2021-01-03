@@ -1,6 +1,8 @@
 #include <Settings.h>
 #include <ArduinoJson.h>
+#ifdef SPIFFS
 #include <FS.h>
+#endif
 #include <IntParsing.h>
 #include <algorithm>
 #include <JsonHelpers.h>
@@ -195,6 +197,7 @@ void Settings::parseGroupIdAliases(JsonObject json) {
   }
 }
 
+
 void Settings::dumpGroupIdAliases(JsonObject json) {
   JsonObject aliases = json.createNestedObject("group_id_aliases");
 
@@ -208,6 +211,7 @@ void Settings::dumpGroupIdAliases(JsonObject json) {
 }
 
 void Settings::load(Settings& settings) {
+  #ifdef SPIFFS
   if (SPIFFS.exists(SETTINGS_FILE)) {
     // Clear in-memory settings
     settings = Settings();
@@ -228,6 +232,7 @@ void Settings::load(Settings& settings) {
   } else {
     settings.save();
   }
+  #endif
 }
 
 String Settings::toJson(const bool prettyPrint) {
@@ -238,6 +243,7 @@ String Settings::toJson(const bool prettyPrint) {
 }
 
 void Settings::save() {
+  #ifdef SPIFFS
   File f = SPIFFS.open(SETTINGS_FILE, "w");
 
   if (!f) {
@@ -246,6 +252,7 @@ void Settings::save() {
     serialize(f);
     f.close();
   }
+  #endif
 }
 
 void Settings::serialize(Print& stream, const bool prettyPrint) {

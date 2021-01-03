@@ -3,7 +3,9 @@
 #include <MiLightRadioConfig.h>
 #include <MiLightRadio.h>
 #include <NRF24MiLightRadio.h>
-#include <LT8900MiLightRadio.h>
+#ifndef RASPBERRYPI
+  #include <LT8900MiLightRadio.h>
+#endif
 #include <RF24PowerLevel.h>
 #include <RF24Channel.h>
 #include <Settings.h>
@@ -26,14 +28,13 @@ public:
 class NRF24Factory : public MiLightRadioFactory {
 public:
 
-  NRF24Factory(
-    uint8_t cePin,
-    uint8_t csnPin,
-    RF24PowerLevel rF24PowerLevel,
-    const std::vector<RF24Channel>& channels,
-    RF24Channel listenChannel
-  );
-
+    NRF24Factory(
+      uint8_t cePin,
+      uint8_t csnPin,
+      RF24PowerLevel rF24PowerLevel,
+      const std::vector<RF24Channel>& channels,
+      RF24Channel listenChannel
+    );
   virtual std::shared_ptr<MiLightRadio> create(const MiLightRadioConfig& config);
 
 protected:
@@ -44,19 +45,20 @@ protected:
 
 };
 
-class LT8900Factory : public MiLightRadioFactory {
-public:
+#ifndef RASPBERRYPI
+  class LT8900Factory : public MiLightRadioFactory {
+  public:
 
-  LT8900Factory(uint8_t csPin, uint8_t resetPin, uint8_t pktFlag);
+    LT8900Factory(uint8_t csPin, uint8_t resetPin, uint8_t pktFlag);
 
-  virtual std::shared_ptr<MiLightRadio> create(const MiLightRadioConfig& config);
+    virtual std::shared_ptr<MiLightRadio> create(const MiLightRadioConfig& config);
 
-protected:
+  protected:
 
-  uint8_t _csPin;
-  uint8_t _resetPin;
-  uint8_t _pktFlag;
+    uint8_t _csPin;
+    uint8_t _resetPin;
+    uint8_t _pktFlag;
 
-};
-
+  };
+#endif
 #endif

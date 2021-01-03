@@ -65,7 +65,7 @@ void *_isr_check_task(void *arg __attribute__((unused))){
     }
     pthread_exit(NULL);
 }
-
+/*
 void attachInterrupt(uint8_t pin, void (*userFunc)(void), int mode) {
     if(pin < 46) {
         uint8_t start = _pin_isr_reg == 0;
@@ -89,3 +89,4 @@ void detachInterrupt(uint8_t pin) {
         handler->fn = 0;
     }
 }
+*/

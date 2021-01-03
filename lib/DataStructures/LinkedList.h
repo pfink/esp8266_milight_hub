@@ -156,7 +156,8 @@ ListNode<T>* LinkedList<T>::getNode(int index){
     _pos++;
   }
 
-  return false;
+  // cf. https://github.com/ivanseidel/LinkedList/commit/f6ec61bbf604680b4f3b653127ee78c5227d3329
+  return NULL;
 }
 
 template<typename T>
