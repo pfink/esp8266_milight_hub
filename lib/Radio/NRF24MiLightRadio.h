@@ -1,10 +1,4 @@
-#ifdef ARDUINO
 #include "Arduino.h"
-#else
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#endif
 
 #include <RF24.h>
 #include <PL1167_nRF24.h>

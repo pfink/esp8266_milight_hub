@@ -79,7 +79,7 @@ size_t Transition::Builder::getOrComputePeriod() const {
     return period;
   } else if (duration > 0 && numPeriods > 0) {
     size_t computed = floor(duration / static_cast<float>(numPeriods));
-    return max(MIN_PERIOD, computed);
+    return max((size_t) 150, computed);
   } else {
     return 0;
   }
