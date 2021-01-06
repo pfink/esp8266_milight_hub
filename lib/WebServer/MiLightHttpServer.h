@@ -49,7 +49,7 @@ public:
   void onGroupDeleted(GroupDeletedHandler handler);
   void on(const char* path, HTTPMethod method, ESP8266WebServer::THandlerFunction handler);
   void handlePacketSent(uint8_t* packet, const MiLightRemoteConfig& config);
-  EthernetClient client();
+  BridgeClient client();
 
 protected:
 

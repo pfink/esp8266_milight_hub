@@ -170,7 +170,7 @@ bool V6MiLightUdpServer::sendResponse(uint16_t sessionId, uint8_t* responseBuffe
   }
 
 #ifdef MILIGHT_UDP_DEBUG
-  printf_P("Sending response to %s:%d\n", session->ipAddr.toString().c_str(), session->port);
+  printf_P("Sending response to %s:%d\n", "N/A" /* session->ipAddr.toString().c_str() */ , session->port);
 #endif
 
   socket.beginPacket(session->ipAddr, session->port);
@@ -203,6 +203,9 @@ void V6MiLightUdpServer::handleCommand(
 
 #ifdef MILIGHT_UDP_DEBUG
   printf("Command cmdType: %02X, cmdHeader: %08X, cmdArg: %08X\n", cmdType, cmdHeader, cmdArg);
+  printf("client %p", *client);
+  printf("deviceId %p", deviceId);
+  printf("group %p", group);
 #endif
 
   bool handled = false;

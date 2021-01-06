@@ -28,7 +28,16 @@ MiLightDiscoveryServer::~MiLightDiscoveryServer() {
 }
 
 void MiLightDiscoveryServer::begin() {
-  socket.begin(settings.discoveryPort);
+
+  #ifdef MILIGHT_UDP_DEBUG
+  Serial.printf("[MiLightDiscoveryServer port %d]\n", settings.discoveryPort);
+  #endif
+
+  uint8_t ret = socket.begin(settings.discoveryPort);
+
+  #ifdef MILIGHT_UDP_DEBUG
+  Serial.printf("[MiLightDiscoveryServer port %d] Begin returned %d\n", settings.discoveryPort, ret);
+  #endif
 }
 
 void MiLightDiscoveryServer::handleClient() {
@@ -65,7 +74,8 @@ void MiLightDiscoveryServer::handleDiscovery(uint8_t version) {
       continue;
     }
     #ifdef ETHERNET
-    IPAddress addr = Ethernet.localIP();
+    IPAddress addr;
+    addr.fromString(settings.wifiStaticIP);
     #else
     IPAddress addr = WiFi.localIP();
     #endif
@@ -92,6 +102,6 @@ void MiLightDiscoveryServer::sendResponse(char* buffer) {
 #endif
 
   socket.beginPacket(socket.remoteIP(), socket.remotePort());
-  socket.write(buffer);
+  //socket.write(buffer);
   socket.endPacket();
 }

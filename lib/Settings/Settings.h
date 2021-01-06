@@ -2,6 +2,7 @@
 #include <StringStream.h>
 #include <ArduinoJson.h>
 #include <GroupStateField.h>
+#include <RF24/RF24.h>
 #include <RF24PowerLevel.h>
 #include <RF24Channel.h>
 #include <Size.h>
@@ -89,8 +90,8 @@ public:
     adminUsername(""),
     adminPassword(""),
     // CE and CSN pins from nrf24l01
-    cePin(4),
-    csnPin(15),
+    cePin(RPI_V2_GPIO_P1_22),
+    csnPin(RPI_V2_GPIO_P1_24),
     resetPin(0),
     ledPin(-2),
     radioInterfaceType(nRF24),

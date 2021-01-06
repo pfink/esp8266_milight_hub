@@ -27,11 +27,11 @@ NRF24Factory::NRF24Factory(
   const std::vector<RF24Channel>& channels,
   RF24Channel listenChannel
 )
-: rf24(RF24(cePin, csnPin)),
+: rf24(RF24(cePin, csnPin, BCM2835_SPI_SPEED_1MHZ)),
   channels(channels),
   listenChannel(listenChannel)
 {
-  rf24.setPALevel(RF24PowerLevelHelpers::rf24ValueFromValue(rF24PowerLevel));
+  //rf24.setPALevel(RF24PowerLevelHelpers::rf24ValueFromValue(rF24PowerLevel));
 }
 
 std::shared_ptr<MiLightRadio> NRF24Factory::create(const MiLightRadioConfig &config) {

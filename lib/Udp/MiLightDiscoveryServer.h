@@ -1,4 +1,4 @@
-#include <EthernetUdp.h>
+#include <BridgeUdp.h>
 #include <Settings.h>
 
 #ifndef MILIGHT_DISCOVERY_SERVER_H
@@ -16,7 +16,7 @@ public:
 
 private:
   Settings& settings;
-  EthernetUDP socket;
+  BridgeUDP socket;
 
   void handleDiscovery(uint8_t version);
   void sendResponse(char* buffer);

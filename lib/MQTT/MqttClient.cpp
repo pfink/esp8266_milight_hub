@@ -4,7 +4,7 @@
 #include <UrlTokenBindings.h>
 #include <IntParsing.h>
 #include <ArduinoJson.h>
-#include <EthernetClient.h>
+#include <BridgeClient.h>
 #include <MiLightRadioConfig.h>
 #include <AboutHelper.h>
 

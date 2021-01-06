@@ -2,10 +2,17 @@
 #include <ArduinoJson.h>
 #ifdef SPIFFS
 #include <FS.h>
+#else
+#include <stdio.h>
 #endif
 #include <IntParsing.h>
 #include <algorithm>
 #include <JsonHelpers.h>
+#include <Console.h>
+
+#include <iostream> // std::cout, std::endl, std::cin
+#include <fstream>  // std::fstream
+using namespace std;
 
 #define PORT_POSITION(s) ( s.indexOf(':') )
 
@@ -211,15 +218,19 @@ void Settings::dumpGroupIdAliases(JsonObject json) {
 }
 
 void Settings::load(Settings& settings) {
-  #ifdef SPIFFS
-  if (SPIFFS.exists(SETTINGS_FILE)) {
+  //if (SPIFFS.exists(SETTINGS_FILE)) {
     // Clear in-memory settings
     settings = Settings();
-
+    #ifdef SPIFFS
     File f = SPIFFS.open(SETTINGS_FILE, "r");
+    #else
+    ifstream f;
+    f.open("/opt/settings.json");
+    #endif
 
     DynamicJsonDocument json(MILIGHT_HUB_SETTINGS_BUFFER_SIZE);
     auto error = deserializeJson(json, f);
+    
     f.close();
 
     if (! error) {
@@ -229,10 +240,11 @@ void Settings::load(Settings& settings) {
       Serial.print(F("Error parsing saved settings file: "));
       Serial.println(error.c_str());
     }
+  /*
   } else {
     settings.save();
   }
-  #endif
+  */
 }
 
 String Settings::toJson(const bool prettyPrint) {

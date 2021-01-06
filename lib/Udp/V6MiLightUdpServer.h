@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <MiLightClient.h>
-#include <EthernetUdp.h>
+#include <BridgeUdp.h>
 #include <MiLightUdpServer.h>
 #include <V6CommandHandler.h>
 

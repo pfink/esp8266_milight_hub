@@ -1,5 +1,5 @@
 #include <FS.h>
-#include <EthernetUdp.h>
+#include <BridgeUdp.h>
 #include <IntParsing.h>
 #include <Settings.h>
 #include <MiLightHttpServer.h>
@@ -97,7 +97,7 @@ void MiLightHttpServer::handleClient() {
   wsServer.loop();
 }
 
-EthernetClient MiLightHttpServer::client() {
+BridgeClient MiLightHttpServer::client() {
   return server.client();
 }
 

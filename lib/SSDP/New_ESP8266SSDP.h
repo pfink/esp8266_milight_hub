@@ -31,7 +31,7 @@ License (MIT license):
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <EthernetUdp.h>
+#include <BridgeUdp.h>
 
 class UdpContext;
 
@@ -63,7 +63,7 @@ class SSDPClass{
 
     bool begin();
 
-    void schema(EthernetClient client);
+    void schema(BridgeClient client);
 
     void setDeviceType(const String& deviceType) { setDeviceType(deviceType.c_str()); }
     void setDeviceType(const char *deviceType);

@@ -17,7 +17,8 @@
 #include <RadioSwitchboard.h>
 #include <PacketSender.h>
 #include <TransitionController.h>
-#include <EthernetUdp.h>
+#include <BridgeUdp.h>
+#include <Console.h>
 
 #include <vector>
 #include <memory>
@@ -215,6 +216,9 @@ void setup() {
 
   // load up our persistent settings from the file system
   Settings::load(settings);
+
+  printf("ce pin: %u, csn pin %u, ip %s\n", settings.cePin, settings.csnPin, settings.wifiStaticIP.c_str());
+
   applySettings();
 
   transitions.addListener(

@@ -14,7 +14,16 @@ MiLightUdpServer::~MiLightUdpServer() {
 }
 
 void MiLightUdpServer::begin() {
-  socket.begin(port);
+
+  #ifdef MILIGHT_UDP_DEBUG
+  Serial.printf("[MiLightUdpServer port %d]\n", port);
+  #endif
+
+  uint8_t ret = socket.begin(port);
+
+  #ifdef MILIGHT_UDP_DEBUG
+  Serial.printf("[MiLightUdpServer port %d] Begin returned %d\n", port, ret);
+  #endif
 }
 
 void MiLightUdpServer::stop() {
