@@ -1,9 +1,14 @@
 #include <PacketFormatter.h>
 
-static uint8_t* PACKET_BUFFER = new uint8_t[PACKET_FORMATTER_BUFFER_SIZE];
+// Fix init order with this ugly workaround: https://stackoverflow.com/q/1005685
+uint8_t*& packetBuffer()
+{
+    static uint8_t* PACKET_BUFFER = new uint8_t[PACKET_FORMATTER_BUFFER_SIZE];
+    return PACKET_BUFFER;
+}
 
 PacketStream::PacketStream()
-    : packetStream(PACKET_BUFFER),
+    : packetStream(packetBuffer()),
       numPackets(0),
       packetLength(0),
       currentPacket(0)
@@ -142,7 +147,7 @@ void PacketFormatter::prepare(uint16_t deviceId, uint8_t groupId) {
 
 void PacketFormatter::reset() {
   this->numPackets = 0;
-  this->currentPacket = PACKET_BUFFER;
+  this->currentPacket = packetBuffer();
   this->held = false;
 }
 
@@ -152,12 +157,12 @@ void PacketFormatter::pushPacket() {
   }
 
   // Make sure there's enough buffer to add another packet.
-  if ((currentPacket + packetLength) >= PACKET_BUFFER + PACKET_FORMATTER_BUFFER_SIZE) {
+  if ((currentPacket + packetLength) >= packetBuffer() + PACKET_FORMATTER_BUFFER_SIZE) {
     Serial.println(F("ERROR: packet buffer full!  Cannot buffer a new packet.  THIS IS A BUG!"));
     return;
   }
 
-  currentPacket = PACKET_BUFFER + (numPackets * packetLength);
+  currentPacket = packetBuffer() + (numPackets * packetLength);
   numPackets++;
   initializePacket(currentPacket);
 }
