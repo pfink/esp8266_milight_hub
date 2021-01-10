@@ -49,6 +49,12 @@ void MiLightDiscoveryServer::handleClient() {
     buffer[packetSize] = 0;
 
 #ifdef MILIGHT_UDP_DEBUG
+    printf("[MiLightUdpServer port %d] - Handling packet: ", settings.discoveryPort);
+    for (size_t i = 0; i < packetSize; i++) {
+      printf("%02X ", buffer[i]);
+    }
+    printf("\n");
+
     printf("Got discovery packet: %s\n", buffer);
 #endif
 
@@ -88,20 +94,20 @@ void MiLightDiscoveryServer::handleDiscovery(uint8_t version) {
     );
 
     if (config.protocolVersion == 5) {
-      sendResponse(buffer);
+      sendResponse(buffer/*, sizeof(buffer)*/);
     } else {
       sprintf_P(ptr, PSTR(",HF-LPB100"));
-      sendResponse(buffer);
+      sendResponse(buffer/*, sizeof(buffer)*/);
     }
   }
 }
 
-void MiLightDiscoveryServer::sendResponse(char* buffer) {
+void MiLightDiscoveryServer::sendResponse(char* buffer/*, size_t size*/) {
 #ifdef MILIGHT_UDP_DEBUG
   printf_P(PSTR("Sending response: %s\n"), buffer);
 #endif
 
   socket.beginPacket(socket.remoteIP(), socket.remotePort());
-  //socket.write(buffer);
+  socket.write((const uint8_t*) buffer, sizeof(buffer));
   socket.endPacket();
 }

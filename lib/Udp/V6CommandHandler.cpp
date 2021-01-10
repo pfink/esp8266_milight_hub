@@ -45,7 +45,12 @@ bool V6CommandDemuxer::handleCommand(MiLightClient* client,
   uint32_t command,
   uint32_t commandArg)
 {
-  for (size_t i = 0; i < numHandlers; i++) {
+
+  printf("Demuxer handle command\n");
+  for (size_t i = 0; i < 4; i++) {
+      #ifdef MILIGHT_UDP_DEBUG
+        printf("Demuxer handler %d bool result: %d\n", i, ((handlers[i]->commandId & command) == handlers[i]->commandId));
+      #endif
     if (((handlers[i]->commandId & command) == handlers[i]->commandId)
       && handlers[i]->handleCommand(client, deviceId, group, commandType, command, commandArg)) {
       return true;

@@ -203,9 +203,9 @@ void V6MiLightUdpServer::handleCommand(
 
 #ifdef MILIGHT_UDP_DEBUG
   printf("Command cmdType: %02X, cmdHeader: %08X, cmdArg: %08X\n", cmdType, cmdHeader, cmdArg);
-  printf("client %p", *client);
-  printf("deviceId %p", deviceId);
-  printf("group %p", group);
+  printf("client %p\n", *client);
+  printf("deviceId %d\n", deviceId);
+  printf("group %d\n", group);
 #endif
 
   bool handled = false;

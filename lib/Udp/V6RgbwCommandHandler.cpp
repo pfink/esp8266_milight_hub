@@ -26,6 +26,11 @@ bool V6RgbwCommandHandler::handleCommand(
   const uint8_t cmd = command & 0x7F;
   const uint8_t arg = commandArg >> 24;
 
+#ifdef MILIGHT_UDP_DEBUG
+    printf("RGBW Handler handleCommand: ", cmd);
+    printf("Command arg: ", arg);
+#endif
+
   client->setHeld((command & 0x80) == 0x80);
 
   if (cmd == V2_RGBW_COMMAND_PREFIX) {
