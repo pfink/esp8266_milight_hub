@@ -94,20 +94,26 @@ void MiLightDiscoveryServer::handleDiscovery(uint8_t version) {
     );
 
     if (config.protocolVersion == 5) {
-      sendResponse(buffer/*, sizeof(buffer)*/);
+      sendResponse(buffer, strlen(buffer));
     } else {
       sprintf_P(ptr, PSTR(",HF-LPB100"));
-      sendResponse(buffer/*, sizeof(buffer)*/);
+      sendResponse(buffer, strlen(buffer));
     }
   }
 }
 
-void MiLightDiscoveryServer::sendResponse(char* buffer/*, size_t size*/) {
+void MiLightDiscoveryServer::sendResponse(char* buffer, size_t size) {
 #ifdef MILIGHT_UDP_DEBUG
   printf_P(PSTR("Sending response: %s\n"), buffer);
+  printf("[MiLightUdpServer port %d] - Sending packet: ", settings.discoveryPort);
+  for (size_t i = 0; i < size; i++) {
+    printf("%02X ", buffer[i]);
+  }
+  printf("\n");
 #endif
 
   socket.beginPacket(socket.remoteIP(), socket.remotePort());
-  socket.write((const uint8_t*) buffer, sizeof(buffer));
+  socket.write((const uint8_t*) buffer, size);
   socket.endPacket();
+
 }

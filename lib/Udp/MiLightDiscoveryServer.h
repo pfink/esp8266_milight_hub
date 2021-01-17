@@ -19,7 +19,7 @@ private:
   BridgeUDP socket;
 
   void handleDiscovery(uint8_t version);
-  void sendResponse(char* buffer);
+  void sendResponse(char* buffer, size_t size);
 };
 
 #endif
