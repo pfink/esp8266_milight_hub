@@ -2,7 +2,7 @@
 #include <StringStream.h>
 #include <ArduinoJson.h>
 #include <GroupStateField.h>
-#include <RF24/RF24.h>
+#include <RF24.h>
 #include <RF24PowerLevel.h>
 #include <RF24Channel.h>
 #include <Size.h>
