@@ -2,10 +2,11 @@
 
 - enable SPI via raspi-config &rarr; Interfacing Options
 - install nRF24's RF24 driver
-  - `git clone https://github.com/nRF24 -b v1.3.2`
+  - `git clone https://github.com/pfink/RF24 -b v1.3.4`
   - `./configure --driver=RPi`
   - `make install`
-- `/opt/settings.json` (example):
+- Download a pre-built version of this application from https://drive.google.com/file/d/1ZsX9KftmbgQ-2vkDxB5ncHiwg2fpLLrb/view?usp=sharing (alternatively, you could build it on your own, see "Development" section)
+- Create `/opt/settings.json` with the following content (example, the commented parts usually have to be adjusted, comments have to be removed afterwards):
 ```json
 {
    "admin_username":"",
@@ -43,9 +44,9 @@
    "hostname":"ML00",
    "rf24_power_level":"MAX",
    "rf24_listen_channel":"LOW",
-   "wifi_static_ip":"192.168.0.31",
-   "wifi_static_ip_gateway":"192.168.0.1",
-   "wifi_static_ip_netmask":"255.255.255.0",
+   "wifi_static_ip":"192.168.0.31",             // IP address of the pi
+   "wifi_static_ip_gateway":"192.168.0.1",      // IP address of the router
+   "wifi_static_ip_netmask":"255.255.255.0",    // network mask
    "packet_repeats_per_loop":6,
    "home_assistant_discovery_prefix":"homeassistant/",
    "wifi_mode":"n",
@@ -56,14 +57,16 @@
       "HIGH"
    ],
    "device_ids":[
-		333
+      333               // For each milight bridge to be emulated add an arbitrary 3-digit device id here
+      // add more comma-seperated device id's here if required
    ],
    "gateway_configs":[
-      [         
-         333,
-         5987,
-         6
+      [                 // For each milight bridge, a config has to be added here
+         333,           // This is your device id from above
+         5987,          // This is the port the emulated bridge will run
+         6              // The version of the emulated bridge, currently only 6 is supported/tested
       ]
+      // add more comma-seperated bridge configurations here if required
    ],
    "group_state_fields":[
       "state",
@@ -75,10 +78,16 @@
    ],
    "group_id_aliases":{
       "bedroom":[
-         "fut096",
-         333,
-         1
+         "fut096",      // Type of the milight remote that is emulated. This depends on the milight lamp you're using. See https://github.com/sidoh/esp8266_milight_hub#supported-remotes
+         333,           // Device id of the emulated bridge thislamp belongs to
+         1              // Group #1 (value has to be between 1 and 4)
+      ],
+      "livingroom":[
+         "fut096",      // Type of the milight remote that is emulated. This depends on the milight lamp you're using. See https://github.com/sidoh/esp8266_milight_hub#supported-remotes
+         333,           // Device id of the emulated bridge thislamp belongs to
+         2              // Group #2 (value has to be between 1 and 4)
       ]
+      // add more comma-seperated configs here if required
    }
 }
 ```
